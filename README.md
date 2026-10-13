@@ -10,8 +10,7 @@ Obj_arg2: Near Sound Radius
 Obj_arg3: Use Provoking Message?  
 Obj_arg7: Camera Vector Register Index  
 
-SW_APPEAR: If used, the rabbit vanishes after being talked to. It appears when this switch is activated.  
-However, the rabbit will stay at whatever position it vanished at.
+SW_APPEAR: If used, the rabbit vanishes after being talked to. It appears when this switch is activated.
 
 Message: The label is TrickRabbit%03d. Requires a flow of four messages:  
 1. Before the minigame
@@ -21,13 +20,9 @@ Message: The label is TrickRabbit%03d. Requires a flow of four messages:
 
 SW_PARAM: Animations and stuff are scaled by ParamScale when this switch is activated.
 
-LinkNamePos: Uses "隠れ位置" as the hiding position. However, this does not currently work.
+LinkNamePos: Uses "隠れ位置" as the hiding position.
 
 SW_B: Starts the minigame even if the rabbit hasn't been talked to. Alternatively gets activated when the minigame begins after being talked to.  
 Multiple rabbits can be linked via their SW_B.
 
 DemoSimpleCast: Continues movement during cutscenes.
-
-## Future plans
-
-- make the TrickRabbitFreeRunCollect work
