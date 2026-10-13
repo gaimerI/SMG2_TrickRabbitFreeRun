@@ -10,7 +10,6 @@ class SpotMarkLight;
 class TalkMessageCtrl;
 class WalkerStateBlowDamage;
 class WalkerStateRunaway;
-class TrickRabbitFreeRunCollect;
 
 class TrickRabbitFreeRun : public NPCActor {
 public:
@@ -60,7 +59,6 @@ public:
   /* 0xB8 */ TalkMessageCtrl *mMsgCtrl;
   /* 0xC0 */ SpotMarkLight *mSpotMarkLight;
   TakeOutStar *mTakeOutStar;
-  TrickRabbitFreeRunCollect *mCollectObj;
 
   s32 mStarId;
   f32 mColorFrame;
@@ -68,5 +66,4 @@ public:
   f32 mNearSoundRadius;
   f32 mParamScale;
   bool mUseProvoke;
-  bool mIsChildObj;
 };
