@@ -22,12 +22,10 @@
 #include "JSystem/JGeometry/TVec.h"
 #include "RabbitStateCaught.h"
 #include "RabbitStateWaitStart.h"
-#include "TrickRabbitFreeRunCollect.h"
 #include "WalkerStateBlowDamage.h"
 #include "WalkerStateRunaway.h"
 #include "revolution/os.h"
 #include "revolution/types.h"
-
 
 namespace {
 static MR::ActorMoveParam sStartAwayParam = {1.4f, 1.0f, 0.9f, 4.0f};
@@ -90,7 +88,7 @@ void TrickRabbitFreeRun::init(const JMapInfoIter &rIter) {
 
   MR::registerDemoSimpleCastAll(this);
 
-  MR::tryRegisterNamePosLinkObj(this, rIter, "隠れ位置");
+  // MR::tryRegisterNamePosLinkObj(this, rIter, "隠れ位置");
   mUsesVanish = MR::useStageSwitchReadAppear(this, rIter);
 
   MR::getParamScale(rIter, &mParamScale);
@@ -111,28 +109,20 @@ void TrickRabbitFreeRun::init(const JMapInfoIter &rIter) {
   mSpotMarkLight = new SpotMarkLight(this, 100.0f, 1500.0f, nullptr);
   mSpotMarkLight->initWithoutIter();
 
-  s32 genID;
-  MR::getGeneratorID(rIter, &genID);
-
-  mIsChildObj = false;
-  if (genID > -1)
-    mIsChildObj = true;
-
   initEffectKeeper(0, nullptr, 0);
   MR::onEmitEffectSyncClipping(this, "Light");
   MR::onForceDeleteEffectSyncClipping(this, "Light");
 
-  if (mStarId > 0) {
-    if (!mIsChildObj) {
-      MR::declarePowerStar(this);
+  MR::tryRegisterNamePosLinkObj(this, rIter, "隠れ位置");
 
-      mTakeOutStar = new TakeOutStar(
-          this, "TakeOutStarTrickRabbit", "TakeOutStarTrickRabbit",
-          &NrvTrickRabbitFreeRun::TrickRabbitFreeRunNrvTakeOutStar::sInstance,
-          0);
-    } else {
-      MR::declareStarPiece(this, mStarId);
-    }
+  if (mStarId > 0) {
+    MR::declarePowerStar(this);
+
+    mTakeOutStar = new TakeOutStar(
+        this, "TakeOutStarTrickRabbit", "TakeOutStarTrickRabbit",
+        &NrvTrickRabbitFreeRun::TrickRabbitFreeRunNrvTakeOutStar::sInstance, 0);
+  } else {
+    MR::declareStarPiece(this, mStarId);
   }
 
   mMsgCtrl = MR::createTalkCtrl(this, rIter, "TrickRabbit",
@@ -165,7 +155,7 @@ void TrickRabbitFreeRun::initSensor() {
 
 void TrickRabbitFreeRun::initState() {
   mStateCaught = new RabbitStateCaught(this, mMsgCtrl);
-  if (mStarId <= 0 || mIsChildObj)
+  if (mStarId <= 0)
     mStateCaught->unusePowerStarModel();
   mStateCaught->init();
 
@@ -323,9 +313,8 @@ void TrickRabbitFreeRun::exeRunawayStart() {
 
     MR::startBckPlayer("BattleWait", nullptr);
     MR::startAction(this, "Run");
-    if (!mIsChildObj) {
-      MR::startMinigameBGM();
-    }
+    MR::startMinigameBGM();
+
     // [NOTE] RunawayStart node forward
     MR::forwardNode(mMsgCtrl);
   }
@@ -391,9 +380,7 @@ void TrickRabbitFreeRun::exeBlowDamage() {
 
 void TrickRabbitFreeRun::exeCaught() {
   if (MR::isFirstStep(this)) {
-    if (!mIsChildObj) {
-      MR::stopStageBGM(60);
-    }
+    MR::stopStageBGM(60);
     MR::startSystemSE("SE_SY_RUNAWAY_RABBIT_GET_1", -1, -1);
   }
 
@@ -401,7 +388,11 @@ void TrickRabbitFreeRun::exeCaught() {
     return;
   }
 
-  if (mStarId > 0 && !mIsChildObj) {
+  if (MR::isValidSwitchA(this)) {
+    MR::onSwitchA(this);
+  }
+
+  if (mStarId > 0) {
     setNerve(
         &NrvTrickRabbitFreeRun::TrickRabbitFreeRunNrvPowerStarDemo::sInstance);
     return;
@@ -412,9 +403,8 @@ void TrickRabbitFreeRun::exeCaught() {
   if (mStarId > 0) {
     MR::appearStarPiece(this, mTranslation, mStarId, 20.0f, 60.0f, false);
   } else {
-    if (!mIsChildObj) {
-      MR::startCurrentStageBGM(true);
-    }
+    MR::startCurrentStageBGM(true);
+
     // [NOTE] Caught node forward
     MR::forwardNode(mMsgCtrl);
   }
@@ -500,14 +490,9 @@ void TrickRabbitFreeRun::exeHide() {
     MR::deleteEffectAll(this);
   }
 
-  MtxPtr mtx;
-
-  // [TODO] Does not work
-  if (MR::tryFindLinkNamePos(this, "隠れ位置", mtx)) {
-    setBaseMtx(mtx);
-    MR::makeQuatAndFrontFromRotate(&mRotateQuat, &mFrontVec, this);
-    MR::resetPosition(this);
-  }
+  MR::tryFindLinkNamePos(this, "隠れ位置", &mTranslation, &mRotation);
+  MR::makeQuatAndFrontFromRotate(&mRotateQuat, &mFrontVec, this);
+  MR::resetPosition(this);
 
   if (mNearSoundRadius > 0.0f) {
     f32 distToPlayer = MR::calcDistanceToPlayer(this);
